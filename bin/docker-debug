@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+docker-compose stop "$@" && docker-compose run --rm --service-ports "$@"
+docker-compose start "$@"

@@ -1,0 +1,46 @@
+networks:
+  default:
+    external:
+      name: mctp_net
+services:
+  db:
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+      MYSQL_DATABASE: mctp
+      MYSQL_USER: mcpt_user
+      MYSQL_PASSWORD: admin123
+    image: mysql:5.6
+    ports:
+    - "3306:3306"
+    volumes:
+    - data_volume:/var/lib/mysql
+  mctp:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+    # To test gunicorn issues
+    # command: ["gunicorn", "helpck.wsgi", "-b 0.0.0.0:8000"]
+    command: ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+    entrypoint: ["dockerize",
+    "-wait", "tcp://db:3306",
+    "-timeout", "30s"]
+    env_file: django.env
+    environment:
+      DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE:-mctp.settings}
+      WERKZEUG_DEBUG_PIN: 'off'
+      MYSQL_HOST: ${MYSQL_HOST:-db}
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+      MYSQL_DATABASE: mctp
+      MYSQL_USER: mcpt_user
+      MYSQL_PASSWORD: admin123
+    image: python/3.8.3-buster
+    networks:
+      default:
+    ports:
+    - "8000:8000"
+    volumes:
+    - .:/app
+version: '3.3'
+volumes:
+  data_volume: {}
+  
